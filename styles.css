@@ -4,13 +4,21 @@
     --c_dark_orange: #de7353; /*Alternative Buttons*/
     --c_yellow: #e5c56e; /*Number Buttons*/
     --c_dark_dark_green: #2b4552; /*Website Background*/
+
+    --calculator_frame_color:#6aa681; /*Dark Green*/
+    --calculator_screen_color:#d0eedc; /*Light Green*/
+    --calculator_button_alternate_color:#de7353; /*Dark Orange*/
+    --calculator_button_number_color:#e5c56e; /*Yellow*/
+    --website_background:#2b4552; /*Dark Dark Green*/
+    --calculator_frame_width: 1000px;
+    --calculator_frame_height: 500px;
 }
 .master_container {
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    background-color: var(--c_dark_dark_green);
+    background-color: var(--website_background);
 }
 
 .calculator_frame {
@@ -18,16 +26,16 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 1000px;
-    height: 500px;
-    background-color: var(--c_dark_green);
+    width: var(--calculator_frame_width);
+    height: var(--calculator_frame_height);
+    background-color: var(--calculator_frame_color);
 }
 
 .calculator_screen {
     display: flex;
     width: 800px;
     height: 100px;
-    background-color: var(--c_light_green);
+    background-color: var(--calculator_screen_color);
 }
 
 .button_container {
@@ -35,14 +43,14 @@
     flex-direction: column;
     width: 800px;
     height: 400px;
-    background-color: rgb(48, 231, 32);
+    background-color: rgb(48, 231, 32); /*This is a temporary variable, should be colored calculator_frame_color*/
 }
 
 .alternate_button {
     display: table-cell;
     width: 50px;
     height: 50px;
-    background-color: var(--c_dark_orange);
+    background-color: var(--calculator_button_alternate_color);
     margin: 10px;
     text-align: center;
     vertical-align: middle;
@@ -52,7 +60,7 @@
     display: table-cell;
     width: 50px;
     height: 50px;
-    background-color: var(--c_yellow);
+    background-color: var(--calculator_button_number_color);
     margin: 10px;
     text-align: center;
     vertical-align: middle;
