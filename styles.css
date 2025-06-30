@@ -33,10 +33,24 @@
 
 .calculator_screen {
     display: flex;
+    flex-direction: column;
     width: 800px;
     height: 100px;
     background-color: var(--calculator_screen_color);
 }
+
+.calculator_screen_font_top{
+    font-size: 50px;
+}
+
+/* .calculator_screen_font_bottom{
+    font-size: 53px;
+} */
+
+.calculator_screen_font_bot{
+    font-size: 50px;
+}
+
 
 .button_container {
     display: flex;
