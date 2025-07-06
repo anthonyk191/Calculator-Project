@@ -1,10 +1,4 @@
 :root{
-    --c_dark_green: #6aa681; /*Calculator Frame*/
-    --c_light_green: #d0eedc; /*Digit Screen*/
-    --c_dark_orange: #de7353; /*Alternative Buttons*/
-    --c_yellow: #e5c56e; /*Number Buttons*/
-    --c_dark_dark_green: #2b4552; /*Website Background*/
-
     --calculator_frame_color:#6aa681; /*Dark Green*/
     --calculator_screen_color:#d0eedc; /*Light Green*/
     --calculator_button_alternate_color:#de7353; /*Dark Orange*/
