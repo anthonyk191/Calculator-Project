@@ -15,7 +15,6 @@ function update_font_top(value) {
 //Function to create a button for the numbers
 function create_button(button) {
     button.addEventListener('click', () => {
-        // console.log(button.textContent) //This is not necessary delete later
         update_font_top(button.textContent)
     })
     return(button)
@@ -27,7 +26,23 @@ function produceErrorMessage(message){
     clearHelper()
     calculator_screen_font_top.textContent = "ERROR"
 }
-//Add Helper
+
+//Allows every number button to be interractable with a click
+for (let i = 0; i < number_buttons.length; i++) {
+    number_buttons_array.push(create_button(number_buttons[i]))
+}
+
+
+//All Alternate Buttons----------------------------------------------------------------------------
+let alternate_buttons = document.querySelectorAll(".alternate_button")
+let alternate_buttons_array = []
+
+for (let i = 0; i < alternate_buttons.length; i++) {
+    alternate_buttons_array.push(create_button(alternate_buttons[i])) //There is a lot wrong here, this is temporary. Update this later
+}
+
+//Helper Functions:--------------------------------------------------------------------------------
+//Addition Helper
 function addHelper(value1, value2){
     if (isNumber(value1) && isNumber(value2)) {
         output = parseInt(value1) + parseInt(value2)
@@ -37,7 +52,7 @@ function addHelper(value1, value2){
         return "skip"
     }
 }
-//Sub Helper
+//Subtraction Helper
 function subtractHelper(value1, value2){
         if (isNumber(value1) && isNumber(value2)) {
         output = parseInt(value1) - parseInt(value2)
@@ -68,22 +83,21 @@ function divideHelper(value1, value2){
     }
 }
 
-
-//Allows every number button to be interractable with a click
-for (let i = 0; i < number_buttons.length; i++) {
-    number_buttons_array.push(create_button(number_buttons[i]))
+//Splice Array removing a section of the array with a single element
+function spliceArray(input_array, start_splice, end_splice, splice_number){
+    output_array = []
+    for (let i=0; i< input_array.length; i++){
+        if ((i < start_splice) || (i > end_splice)) {
+            output_array.push(input_array[i])
+        }
+        else if (i == start_splice){
+            output_array.push(splice_number)
+        }
+    }
+    console.log(output_array)
+    return(output_array)
 }
-
-
-//All Alternate Buttons----------------------------------------------------------------------------
-let alternate_buttons = document.querySelectorAll(".alternate_button")
-let alternate_buttons_array = []
-
-for (let i = 0; i < alternate_buttons.length; i++) {
-    alternate_buttons_array.push(create_button(alternate_buttons[i])) //There is a lot wrong here, this is temporary. Update this later
-}
-
-//Helper Functions: I know there are math libraries out there, but I am building from scratch because I am lazy
+//Compress Array into a single number
 function compressArray(input_array){
     let output_string = ""
     for (let i = 0; i < input_array.length; i ++) {
@@ -120,7 +134,6 @@ clear_button.addEventListener("click", () => {
 })
 
 //Delete (DEL) Button
-
 function deleteButton() {
     if (calculator_screen_font_top.textContent != "") {
         console.log("Deleted")
@@ -152,7 +165,29 @@ function compute() {
         }
     }
     //Performing multiplication and divsion first
+    //Counting 
+    multiplication_division_counter = 0
+    for (let i=0; i < compute_array.length; i++){
+        if ((compute_array[i] == "x") || (compute_array[i] == "/")){
+            multiplication_division_counter += 1
+        }
+    }
+    //Computing multiplication and division
+    let mult_div_array = compute_array
+    for (let j=0; j < multiplication_division_counter; j++){
+        for (let i=0; i< mult_div_array.length; i++){
+            if (mult_div_array[i] == "x"){
+                multiplyedValue = multiplyHelper(mult_div_array[i-1], mult_div_array[i+1])
+                mult_div_array = spliceArray(mult_div_array, i-1, i+1, multiplyedValue)
+            }
+            else if (mult_div_array[i] == "/"){
+                dividedValue = divideHelper(mult_div_array[i-1], mult_div_array[i+1])
+                mult_div_array = spliceArray(mult_div_array, i-1, i+1, dividedValue)
+            }
+        }
+    }
 
+    compute_array = mult_div_array
     //Checking for mathematical notations
     for (let i=0; i < compute_array.length; i++){
         if (compute_array[i] == "+") {
