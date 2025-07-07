@@ -35,8 +35,6 @@ for (let i = 0; i < alternate_buttons.length; i++) {
     alternate_buttons_array.push(create_button(alternate_buttons[i])) //There is a lot wrong here, this is temporary. Update this later
 }
 
-console.log(alternate_buttons_array[11])
-
 //Addition Button
 let addition_button = alternate_buttons[12]
 //Equal Button
@@ -67,7 +65,42 @@ function isNumber(input) {
     }
     return false
 }
+//Clear (CE) Button
+function clearButton(){
+    calculator_screen_font_top.textContent = ""
+}
+let clear_button = alternate_buttons[4]
+clear_button.addEventListener("click", () => {
+    clearButton()
+})
 
+//Delete (DEL) Button
+//    --Helper Function
+function popFunction(array){
+    new_array = []
+    if (array.length > 0) {
+        for (let i = 0; i < array.length - 1; i++){
+            new_array.push(array[i])
+        }
+    }
+    return compressArray(new_array)
+}
+
+console.log(popFunction("Hellow"))
+
+function deleteButton() {
+    if (calculator_screen_font_top.textContent != "") {
+        console.log("Deleted")
+        //Note here, since DEL is written, I will pop 4 times instead of 1
+        for (let i=0; i<4; i++){
+            calculator_screen_font_top.textContent = popFunction(calculator_screen_font_top.textContent)
+        }
+    }
+}
+let delete_button = alternate_buttons[6]
+delete_button.addEventListener("click", () => {
+    deleteButton()
+})
 //Compute Function
 function compute() {
     compute_array = []
@@ -86,7 +119,6 @@ function compute() {
         }
     }
     console.log(compute_array)
-    console.log("Hello")
 }
 let equal_button = alternate_buttons[11]
 equal_button.addEventListener("click", () => {
