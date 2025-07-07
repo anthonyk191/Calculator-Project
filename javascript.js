@@ -21,6 +21,54 @@ function create_button(button) {
     return(button)
 }
 
+//Error Message Function
+function produceErrorMessage(message){
+    console.log(message)
+    clearHelper()
+    calculator_screen_font_top.textContent = "ERROR"
+}
+//Add Helper
+function addHelper(value1, value2){
+    if (isNumber(value1) && isNumber(value2)) {
+        output = parseInt(value1) + parseInt(value2)
+        return(output.toString())
+    }
+    else {
+        return "skip"
+    }
+}
+//Sub Helper
+function subtractHelper(value1, value2){
+        if (isNumber(value1) && isNumber(value2)) {
+        output = parseInt(value1) - parseInt(value2)
+        return(output.toString())
+    }
+    else {
+        return "skip"
+    }
+}
+//Multiply Helper
+function multiplyHelper(value1, value2){
+        if (isNumber(value1) && isNumber(value2)) {
+        output = parseInt(value1) * parseInt(value2)
+        return(output.toString())
+    }
+    else {
+        return "skip"
+    }
+}
+//Division Helper
+function divideHelper(value1, value2){
+        if (isNumber(value1) && isNumber(value2)) {
+        output = parseInt(value1) / parseInt(value2)
+        return(output.toString())
+    }
+    else {
+        return "skip"
+    }
+}
+
+
 //Allows every number button to be interractable with a click
 for (let i = 0; i < number_buttons.length; i++) {
     number_buttons_array.push(create_button(number_buttons[i]))
@@ -35,19 +83,7 @@ for (let i = 0; i < alternate_buttons.length; i++) {
     alternate_buttons_array.push(create_button(alternate_buttons[i])) //There is a lot wrong here, this is temporary. Update this later
 }
 
-//Addition Button
-let addition_button = alternate_buttons[12]
-//Equal Button
-//I know there are math libraries out there, but I am building from scratch
-
-function add(input_array){
-    let output = 0
-    for (let i=0; i < input_array.length; i++) {
-        output += input_array[i]
-    }
-    return output
-}
-
+//Helper Functions: I know there are math libraries out there, but I am building from scratch because I am lazy
 function compressArray(input_array){
     let output_string = ""
     for (let i = 0; i < input_array.length; i ++) {
@@ -56,26 +92,15 @@ function compressArray(input_array){
     return(output_string)
 }
 
-function isNumber(input) {
-    compare_array = []
-    for (let i=0; i<= 9; i++) {
-        if (input == i) {
-            return (true)
-        }
+function isNumber(input) { //Fix This! Check if this works for mathematical annotations
+    if (input >= 0 || input < 0){
+        return(true)
     }
-    return false
+    else{
+        return(false)
+    }
 }
-//Clear (CE) Button
-function clearButton(){
-    calculator_screen_font_top.textContent = ""
-}
-let clear_button = alternate_buttons[4]
-clear_button.addEventListener("click", () => {
-    clearButton()
-})
 
-//Delete (DEL) Button
-//    --Helper Function
 function popFunction(array){
     new_array = []
     if (array.length > 0) {
@@ -85,8 +110,16 @@ function popFunction(array){
     }
     return compressArray(new_array)
 }
+//Clear (CE) Button
+function clearHelper(){
+    calculator_screen_font_top.textContent = ""
+}
+let clear_button = alternate_buttons[4]
+clear_button.addEventListener("click", () => {
+    clearHelper()
+})
 
-console.log(popFunction("Hellow"))
+//Delete (DEL) Button
 
 function deleteButton() {
     if (calculator_screen_font_top.textContent != "") {
@@ -116,6 +149,36 @@ function compute() {
             compute_array.push(current_number)
             compute_array.push(calculator_screen_font_top.textContent[i])
             current_number_array = []
+        }
+    }
+    //Performing multiplication and divsion first
+
+    //Checking for mathematical notations
+    for (let i=0; i < compute_array.length; i++){
+        if (compute_array[i] == "+") {
+            intermediate_value = addHelper(compute_array[i-1], compute_array[i+1])
+            if (intermediate_value == "skip"){
+                produceErrorMessage()
+                break
+            }
+            else {
+                compute_array[i+1] = intermediate_value
+            }
+        }
+        else if (compute_array[i] == "-") {
+            console.log("subtraction found")
+            intermediate_value = subtractHelper(compute_array[i-1], compute_array[i+1])
+            if (intermediate_value == "skip"){
+                produceErrorMessage()
+                break
+            }
+            else {
+                compute_array[i+1] = intermediate_value
+            }
+        }
+        else if (compute_array[i] == "="){
+            clearHelper()
+            calculator_screen_font_top.textContent = compute_array[i-1]
         }
     }
     console.log(compute_array)
