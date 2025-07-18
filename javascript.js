@@ -45,7 +45,7 @@ for (let i = 0; i < alternate_buttons.length; i++) {
 //Addition Helper
 function addHelper(value1, value2){
     if (isNumber(value1) && isNumber(value2)) {
-        output = parseInt(value1) + parseInt(value2)
+        output = parseFloat(value1) + parseFloat(value2)
         return(output.toString())
     }
     else {
@@ -55,7 +55,7 @@ function addHelper(value1, value2){
 //Subtraction Helper
 function subtractHelper(value1, value2){
         if (isNumber(value1) && isNumber(value2)) {
-        output = parseInt(value1) - parseInt(value2)
+        output = parseFloat(value1) - parseFloat(value2)
         return(output.toString())
     }
     else {
@@ -65,7 +65,7 @@ function subtractHelper(value1, value2){
 //Multiply Helper
 function multiplyHelper(value1, value2){
         if (isNumber(value1) && isNumber(value2)) {
-        output = parseInt(value1) * parseInt(value2)
+        output = parseFloat(value1) * parseFloat(value2)
         return(output.toString())
     }
     else {
@@ -75,7 +75,7 @@ function multiplyHelper(value1, value2){
 //Division Helper
 function divideHelper(value1, value2){
         if (isNumber(value1) && isNumber(value2)) {
-        output = parseInt(value1) / parseInt(value2)
+        output = parseFloat(value1) / parseFloat(value2)
         return(output.toString())
     }
     else {
@@ -97,6 +97,14 @@ function spliceArray(input_array, start_splice, end_splice, splice_number){
     console.log(output_array)
     return(output_array)
 }
+
+function shift(array){
+    output_array = []
+    for (let i = 1; i<array.length; i++){
+        output_array.push(array[i])
+    }
+    return(output_array)
+}
 //Compress Array into a single number
 function compressArray(input_array){
     let output_string = ""
@@ -108,6 +116,15 @@ function compressArray(input_array){
 
 function isNumber(input) { //Fix This! Check if this works for mathematical annotations
     if (input >= 0 || input < 0){
+        return(true)
+    }
+    else{
+        return(false)
+    }
+}
+
+function isDecimal(input) {
+    if(input == '.'){
         return(true)
     }
     else{
@@ -152,16 +169,31 @@ function compute() {
     compute_array = []
     let current_number = 0
     let current_number_array = []
-    //Goes through calculator screen and creates array separating numbers from alternate numbers
+    let used_decimal_bool = false
+
+    //future assignment: figure how to add 09 + 09
+    //Goes through calculator screen and creates array separating numbers and decimals from alternate symbols
     for (let i = 0; i < calculator_screen_font_top.textContent.length; i++) {
-        if (isNumber(calculator_screen_font_top.textContent[i])) {
-            current_number_array.push(calculator_screen_font_top.textContent[i])
+        char = calculator_screen_font_top.textContent[i]
+        if (isNumber(char)) {
+            current_number_array.push(char)
+        }
+        else if (isDecimal(char)){
+            if (used_decimal_bool) {
+                console.log("Error Message in compute")
+                produceErrorMessage()
+                return
+            }
+            current_number_array.push(char)
+            used_decimal_bool = true
         }
         else {
             current_number = compressArray(current_number_array)
             compute_array.push(current_number)
             compute_array.push(calculator_screen_font_top.textContent[i])
             current_number_array = []
+            used_decimal_bool = false
+
         }
     }
     //Performing multiplication and divsion first
