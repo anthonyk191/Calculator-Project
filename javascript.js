@@ -10,7 +10,40 @@ let number_buttons_array = []
 
 //Helper function to update text on calculator_screen_font_top
 function update_font_top(value) {
+    
     calculator_screen_font_top.textContent += value
+    // checking for zeroes
+
+    //Check Previous Value
+    let previous_value = calculator_screen_font_top.textContent[calculator_screen_font_top.textContent.length - 2]
+    let current_value = calculator_screen_font_top.textContent[calculator_screen_font_top.textContent.length - 1]
+    let previous_previous_value = calculator_screen_font_top.textContent[calculator_screen_font_top.textContent.length - 3]
+    
+    if(typeof previous_previous_value == 'undefined' || isSymbol(previous_previous_value)){
+        // console.log("Previous Previous Exists")
+        if (previous_value == '0'){
+            // console.log("Previous Value is 0")
+            
+            if (current_value == '.'){
+                console.log("Current Value is a decimal")
+    
+            }
+            else{
+                if (calculator_screen_font_top.textContent.length >= 3) {
+                    calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent, calculator_screen_font_top.textContent.length - 2)
+                    console.log("popped")
+                }
+                else{
+                    calculator_screen_font_top.textContent = shift_string(calculator_screen_font_top.textContent)
+                    console.log("Error stuff")
+                }
+            }
+        }
+    }
+
+    //Check if Previous Previous Value exists
+
+    //Check if Current is a Decimal
 }
 //Function to create a button for the numbers
 function create_button(button) {
@@ -98,12 +131,26 @@ function spliceArray(input_array, start_splice, end_splice, splice_number){
     return(output_array)
 }
 
-function shift(array){
-    output_array = []
-    for (let i = 1; i<array.length; i++){
-        output_array.push(array[i])
+function shift_string(string){
+    output_string = ''
+    for (let i = 1; i<string.length; i++){
+        output_string += string[i]
     }
-    return(output_array)
+    return(output_string)
+}
+
+function pop_string(string, index = string.length -1){
+    output_string = ''
+    for (let i = 0; i<string.length; i++){
+        if (i == index){
+
+        }
+        else{
+            output_string += string[i]
+        }
+    }
+    console.log(`Value of index is ${index}`)
+    return(output_string)
 }
 //Compress Array into a single number
 function compressArray(input_array){
@@ -130,6 +177,16 @@ function isDecimal(input) {
     else{
         return(false)
     }
+}
+
+function isSymbol(input) {
+    SYMBOL_LIST = ["+", "-", "*", "/"]
+    for (let i = 0; i< SYMBOL_LIST.length-1; i++){
+        if (input == SYMBOL_LIST[i]){
+            return(true)
+        }
+    }
+    return(false)
 }
 
 function popFunction(array){
@@ -170,8 +227,10 @@ function compute() {
     let current_number = 0
     let current_number_array = []
     let used_decimal_bool = false
-
-    //future assignment: figure how to add 09 + 09
+    //Check if the calculator screen says "ERROR"
+    if (calculator_screen_font_top.textContent == 'ERROR'){
+        console.log("ERROR Found")
+    }
     //Goes through calculator screen and creates array separating numbers and decimals from alternate symbols
     for (let i = 0; i < calculator_screen_font_top.textContent.length; i++) {
         char = calculator_screen_font_top.textContent[i]
