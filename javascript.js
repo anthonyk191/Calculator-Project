@@ -131,6 +131,7 @@ function spliceArray(input_array, start_splice, end_splice, splice_number){
     return(output_array)
 }
 
+//Deletes first element from string
 function shift_string(string){
     output_string = ''
     for (let i = 1; i<string.length; i++){
@@ -139,6 +140,7 @@ function shift_string(string){
     return(output_string)
 }
 
+//Deletes last element from string
 function pop_string(string, index = string.length -1){
     output_string = ''
     for (let i = 0; i<string.length; i++){
@@ -161,6 +163,7 @@ function compressArray(input_array){
     return(output_string)
 }
 
+//Checks if value is a number
 function isNumber(input) { //Fix This! Check if this works for mathematical annotations
     if (input >= 0 || input < 0){
         return(true)
@@ -170,6 +173,7 @@ function isNumber(input) { //Fix This! Check if this works for mathematical anno
     }
 }
 
+//Checks if element is a decimal symbol
 function isDecimal(input) {
     if(input == '.'){
         return(true)
@@ -179,6 +183,7 @@ function isDecimal(input) {
     }
 }
 
+//Checks if element is a mathematical symbol
 function isSymbol(input) {
     SYMBOL_LIST = ["+", "-", "*", "/"]
     for (let i = 0; i< SYMBOL_LIST.length-1; i++){
@@ -189,6 +194,7 @@ function isSymbol(input) {
     return(false)
 }
 
+//Deletes the last element in an array
 function popFunction(array){
     new_array = []
     if (array.length > 0) {
@@ -198,64 +204,56 @@ function popFunction(array){
     }
     return compressArray(new_array)
 }
-//Clear (CE) Button
-function clearHelper(){
-    calculator_screen_font_top.textContent = ""
-}
-let clear_button = alternate_buttons[4]
-clear_button.addEventListener("click", () => {
-    clearHelper()
-})
 
-//Delete (DEL) Button
-function deleteButton() {
-    if (calculator_screen_font_top.textContent != "") {
-        console.log("Deleted")
-        //Note here, since DEL is written, I will pop 4 times instead of 1
-        for (let i=0; i<4; i++){
-            calculator_screen_font_top.textContent = popFunction(calculator_screen_font_top.textContent)
-        }
-    }
-}
-let delete_button = alternate_buttons[6]
-delete_button.addEventListener("click", () => {
-    deleteButton()
-})
-//Compute Function
-function compute() {
-    compute_array = []
-    let current_number = 0
-    let current_number_array = []
-    let used_decimal_bool = false
-    //Check if the calculator screen says "ERROR"
+//Check if calculator screen says "ERROR"
+function checkForErrorMessage(){
     if (calculator_screen_font_top.textContent == 'ERROR'){
         console.log("ERROR Found")
     }
-    //Goes through calculator screen and creates array separating numbers and decimals from alternate symbols
+}
+//Checks for multiple decimals within a single number
+function checkForRepeatingDecimal() {
+    let used_decimal_bool = false
+    //Goes through calculator screen and creates array separating numbers and decimals from alternate symbols. Makes sure there aren't multiple decimals contained in a single number.
     for (let i = 0; i < calculator_screen_font_top.textContent.length; i++) {
         char = calculator_screen_font_top.textContent[i]
-        if (isNumber(char)) {
-            current_number_array.push(char)
+        if (isNumber(char)){
+            //Nothing Happens
         }
         else if (isDecimal(char)){
-            if (used_decimal_bool) {
+            if (used_decimal_bool){
                 console.log("Error Message in compute")
                 produceErrorMessage()
                 return
             }
-            current_number_array.push(char)
             used_decimal_bool = true
         }
-        else {
-            current_number = compressArray(current_number_array)
-            compute_array.push(current_number)
-            compute_array.push(calculator_screen_font_top.textContent[i])
-            current_number_array = []
+        else{ //Its a symbol or something
             used_decimal_bool = false
-
         }
     }
-    //Performing multiplication and divsion first
+}
+
+//creates an array of only numbers and symbols
+function identifyNumbers(string){
+    let number_array = []
+    let output_array = []
+    for (let i = 0; i < string.length; i++){
+        char = string[i]
+        if (isNumber(char) || isDecimal(char)) {
+            number_array.push(char)
+        }
+        else{
+            output_array.push(compressArray(number_array))
+            output_array.push(char)
+            number_array = []
+        }
+    }
+    return(output_array)
+}
+
+//computes multiplication and division
+function computeMultiplicationDivision(compute_array){
     //Counting 
     multiplication_division_counter = 0
     for (let i=0; i < compute_array.length; i++){
@@ -279,7 +277,11 @@ function compute() {
     }
 
     compute_array = mult_div_array
-    //Checking for mathematical notations
+    return(compute_array)
+}
+
+//compute addition and distraction
+function computeAdditionSubtraction(compute_array){
     for (let i=0; i < compute_array.length; i++){
         if (compute_array[i] == "+") {
             intermediate_value = addHelper(compute_array[i-1], compute_array[i+1])
@@ -307,15 +309,46 @@ function compute() {
             calculator_screen_font_top.textContent = compute_array[i-1]
         }
     }
-    console.log(compute_array)
+    return(compute_array)
 }
-let equal_button = alternate_buttons[11]
-equal_button.addEventListener("click", () => {
-    compute()
+//Clear (CE) Button
+function clearHelper(){
+    calculator_screen_font_top.textContent = ""
+}
+let clear_button = alternate_buttons[4]
+clear_button.addEventListener("click", () => {
+    clearHelper()
 })
 
-//looking for function
+//Delete (DEL) Button
+function deleteButton() {
+    if (calculator_screen_font_top.textContent != "") {
+        console.log("Deleted")
+        //Note here, since DEL is written, I will pop 4 times instead of 1
+        for (let i=0; i<4; i++){
+            calculator_screen_font_top.textContent = popFunction(calculator_screen_font_top.textContent)
+        }
+    }
+}
+let delete_button = alternate_buttons[6]
+delete_button.addEventListener("click", () => {
+    deleteButton()
+})
+//Compute Function
+function masterCompute() {
+    let compute_array = []
 
-// document.getElementById("number_button").onclick = () => {
-//     console.log("Button pressed")
-// }
+    checkForErrorMessage()
+    checkForRepeatingDecimal()
+    compute_array = identifyNumbers(calculator_screen_font_top.textContent)
+    compute_array = computeMultiplicationDivision(compute_array)
+    compute_array = computeAdditionSubtraction(compute_array)
+    console.log(compute_array)
+}
+
+//Compute math of calculator screen. Instantiate equal button to compute
+let equal_button = alternate_buttons[11]
+equal_button.addEventListener("click", () => {
+    masterCompute()
+})
+
