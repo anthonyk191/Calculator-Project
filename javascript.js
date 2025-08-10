@@ -117,14 +117,14 @@ function divideHelper(value1, value2){
 }
 
 //Splice Array removing a section of the array with a single element
-function spliceArray(input_array, start_splice, end_splice, splice_number){
+function spliceArray(input_array, start_splice, end_splice, number_between_splice){
     output_array = []
     for (let i=0; i< input_array.length; i++){
         if ((i < start_splice) || (i > end_splice)) {
             output_array.push(input_array[i])
         }
         else if (i == start_splice){
-            output_array.push(splice_number)
+            output_array.push(number_between_splice)
         }
     }
     console.log(output_array)
@@ -211,6 +211,30 @@ function checkForErrorMessage(){
         console.log("ERROR Found")
     }
 }
+
+//Check if there are any stray parentheses without a pair.
+function checkForParenthesesIssue(){
+    screen_string = calculator_screen_font_top.textContent
+    left_parentheses_count = 0
+    right_parentheses_count = 0
+    for (let i = 0; i< screen_string.length; i++){
+        char = screen_string[i]
+        if (char == "("){
+            left_parentheses_count++
+        }
+        if (char == ")"){
+            right_parentheses_count++
+        }
+    }
+
+    if (left_parentheses_count == right_parentheses_count){
+        return
+    }
+    else{
+        produceErrorMessage()
+        return
+    }
+}
 //Checks for multiple decimals within a single number
 function checkForRepeatingDecimal() {
     let used_decimal_bool = false
@@ -235,21 +259,28 @@ function checkForRepeatingDecimal() {
 }
 
 //creates an array of only numbers and symbols
-function identifyNumbers(string){
-    let number_array = []
-    let output_array = []
-    for (let i = 0; i < string.length; i++){
-        char = string[i]
-        if (isNumber(char) || isDecimal(char)) {
-            number_array.push(char)
+function identifyNumbers(input){
+    if (typeof input === 'string'){
+        let string = input
+        let number_array = []
+        let output_array = []
+        for (let i = 0; i < string.length; i++){
+            char = string[i]
+            if (isNumber(char) || isDecimal(char)) {
+                number_array.push(char)
+            }
+            else{
+                output_array.push(compressArray(number_array))
+                output_array.push(char)
+                number_array = []
+            }
         }
-        else{
-            output_array.push(compressArray(number_array))
-            output_array.push(char)
-            number_array = []
-        }
+        return(output_array)
+    } 
+    else if(Array.isArray(input)){
+        // Case only works if the array is processed by 
     }
-    return(output_array)
+
 }
 
 //computes multiplication and division
@@ -265,12 +296,15 @@ function computeMultiplicationDivision(compute_array){
     let mult_div_array = compute_array
     for (let j=0; j < multiplication_division_counter; j++){
         for (let i=0; i< mult_div_array.length; i++){
-            if (mult_div_array[i] == "x"){
-                multiplyedValue = multiplyHelper(mult_div_array[i-1], mult_div_array[i+1])
+            char_current = mult_div_array[i]
+            char_previous = mult_div_array[i-1]
+            char_ahead = mult_div_array[i+1]
+            if (char_current == "x"){
+                multiplyedValue = multiplyHelper(char_previous, char_ahead)
                 mult_div_array = spliceArray(mult_div_array, i-1, i+1, multiplyedValue)
             }
             else if (mult_div_array[i] == "/"){
-                dividedValue = divideHelper(mult_div_array[i-1], mult_div_array[i+1])
+                dividedValue = divideHelper(char_previous, char_ahead)
                 mult_div_array = spliceArray(mult_div_array, i-1, i+1, dividedValue)
             }
         }
@@ -283,8 +317,11 @@ function computeMultiplicationDivision(compute_array){
 //compute addition and distraction
 function computeAdditionSubtraction(compute_array){
     for (let i=0; i < compute_array.length; i++){
-        if (compute_array[i] == "+") {
-            intermediate_value = addHelper(compute_array[i-1], compute_array[i+1])
+        char_current = compute_array[i]
+        char_previous = compute_array[i-1]
+        char_ahead = compute_array[i+1]
+        if (char_current == "+") {
+            intermediate_value = addHelper(char_previous, char_ahead)
             if (intermediate_value == "skip"){
                 produceErrorMessage()
                 break
@@ -293,9 +330,8 @@ function computeAdditionSubtraction(compute_array){
                 compute_array[i+1] = intermediate_value
             }
         }
-        else if (compute_array[i] == "-") {
-            console.log("subtraction found")
-            intermediate_value = subtractHelper(compute_array[i-1], compute_array[i+1])
+        else if (char_current == "-") {
+            intermediate_value = subtractHelper(char_previous, char_ahead)
             if (intermediate_value == "skip"){
                 produceErrorMessage()
                 break
@@ -304,9 +340,9 @@ function computeAdditionSubtraction(compute_array){
                 compute_array[i+1] = intermediate_value
             }
         }
-        else if (compute_array[i] == "="){
+        else if (char_current == "="){
             clearHelper()
-            calculator_screen_font_top.textContent = compute_array[i-1]
+            calculator_screen_font_top.textContent = compute_array[i-1] //This doesnt do anything FIX/ DELETE LATER
         }
     }
     return(compute_array)
@@ -335,12 +371,10 @@ delete_button.addEventListener("click", () => {
     deleteButton()
 })
 //Compute Function
-function masterCompute() {
+function masterCompute(screen_value = 'Missing Input') {
     let compute_array = []
 
-    checkForErrorMessage()
-    checkForRepeatingDecimal()
-    compute_array = identifyNumbers(calculator_screen_font_top.textContent)
+    compute_array = identifyNumbers(screen_value)
     compute_array = computeMultiplicationDivision(compute_array)
     compute_array = computeAdditionSubtraction(compute_array)
     console.log(compute_array)
@@ -349,6 +383,9 @@ function masterCompute() {
 //Compute math of calculator screen. Instantiate equal button to compute
 let equal_button = alternate_buttons[11]
 equal_button.addEventListener("click", () => {
-    masterCompute()
+    checkForErrorMessage()
+    checkForRepeatingDecimal()
+    checkForParenthesesIssue()
+    masterCompute(calculator_screen_font_top.textContent)
 })
 
