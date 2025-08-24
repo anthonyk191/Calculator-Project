@@ -12,6 +12,14 @@ let global_intermediate_number = ''//A floating point number
 
 //Helper function to update text on calculator_screen_font_top
 function update_font_top(value) {
+    console.log(`Button Pressed should be ${value}`)
+    
+    //Edge case for DEL Symbol
+    if (value == "DEL"){
+        return
+    }
+    
+    //Updating global variables
     if (value == "=" && global_intermediate_number != ''){
         global_screen_array.push(global_intermediate_number)
     }
@@ -35,7 +43,7 @@ function update_font_top(value) {
     let current_value = calculator_screen_font_top.textContent[calculator_screen_length - 1]
     let previous_previous_value = calculator_screen_font_top.textContent[calculator_screen_length - 3]
     
-    //Checks making sure the next number 
+    //Checks making sure the numbers with a decimal is valid
     if(typeof previous_previous_value == 'undefined' || isSymbol(previous_previous_value)){
         if (previous_value == '0'){
             //Check if Current is a Decimal
@@ -66,7 +74,7 @@ function create_button(button) {
 
 //Error Message Function
 function produceErrorMessage(message){
-    console.log(message)
+    console.log("ERROR "+message)
     clearHelper()
     calculator_screen_font_top.textContent = 'ERROR'
 }
@@ -108,7 +116,11 @@ function subtractHelper(value1, value2){
 }
 //Multiply Helper
 function multiplyHelper(value1, value2){
-        if (isNumber(value1) && isNumber(value2)) {
+    if (isNumber(value1) && isNumber(value2)) {
+        console.log("Returning Zero")
+        if ((value1 == 0) || (value2 == 0)){ //Check for zero errors
+            return(0)
+        }
         output = parseFloat(value1) * parseFloat(value2)
         return(output.toString())
     }
@@ -118,7 +130,7 @@ function multiplyHelper(value1, value2){
 }
 //Division Helper
 function divideHelper(value1, value2){
-        if (isNumber(value1) && isNumber(value2)) {
+    if (isNumber(value1) && isNumber(value2)) {
         output = parseFloat(value1) / parseFloat(value2)
         return(output.toString())
     }
@@ -174,13 +186,21 @@ function compressArray(input_array){
 }
 
 //Checks if value is a number
-function isNumber(input) { //Fix This! Check if this works for mathematical annotations
+function isNumber(input) { //Fix This! Check if this works for mathematical annotations (also doesnt work for zero)
     if (input >= 0 || input < 0){
+        console.log(`isNumber is true for ${input}`)
         return(true)
     }
     else{
         return(false)
     }
+
+    // if (typeof input === 'number'){
+    //     return(true)
+    // }
+    // else{
+    //     return(false)
+    // }
 }
 
 //Checks if element is a decimal symbol
@@ -240,12 +260,14 @@ function checkForErrorMessage(){
 //Check for repeated symbol errors
 function checkForSymbolIssue(){
     loop_length = global_screen_array.length
+    if (isSymbol(global_screen_array[0])){
+        produceErrorMessage("First element is a symbol")
+    }
     for (let i = 0; i < loop_length-1; i++){
         char_current = global_screen_array[i]
         char_ahead = global_screen_array[i+1]
         if(isSymbol(char_current) && isSymbol(char_ahead)){
-            console.log("Double symbol found")
-            produceErrorMessage()
+            produceErrorMessage("Double symbol found")
             break
         }
     }
@@ -411,44 +433,34 @@ function deleteButton() {
         console.log(`Value before deleting global_screen_array: ${global_screen_array}`)
         
         //Deletes the numbers on the top of screen
+        calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent)
         
-        for (let i=0; i<4; i++){ //Note here, since DEL is written, I will pop 4 times instead of 1
-            calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent)
+        // for (let i=0; i<4; i++){ //Note here, since DEL is written, I will pop 4 times instead of 1
+        // }
+        
+        //Deletes within global_intermediate_number
+        if (global_intermediate_number != ''){
+            global_intermediate_number = pop_number(global_intermediate_number)
+        }
+        else{
+            last_index = global_screen_array.length-1
+            last_element = global_screen_array[last_index]
+            
+            //FIX: This is pretty bad code. Consider optimizing
+            if (hasDecimal(last_element) && isNumber(last_element)){
+                global_screen_array[last_index] = pop_decimal_number(last_element)
+            }
+            else if (isNumber(last_element)) {
+                global_screen_array[last_index] = pop_number(last_element)
+            }
+            else if (isSymbol(last_element)){
+                global_screen_array = pop_array(global_screen_array)
+            }  
         }
         
-        //Deleting within global_screen_array
-        global_screen_array = pop_array(global_screen_array)
+        //Deleting within global_screen_array (This assumes DEL is added to the array)
+        // global_screen_array = pop_array(global_screen_array)
         
-        last_index = global_screen_array.length-1
-        last_element = global_screen_array[last_index]
-        
-        //FIX: This is pretty bad code. Consider optimizing
-        if (hasDecimal(last_element) && isNumber(last_element)){
-            global_screen_array[last_index] = pop_decimal_number(last_element)
-        }
-        else if (isNumber(last_element)) {
-            global_screen_array[last_index] = pop_number(last_element)
-        }
-        else if (isSymbol(last_element)){
-            global_screen_array = pop_array(global_screen_array)
-        }  
-            //-----------------------------------------
-            // calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent)
-                
-            //     else if (isSymbol(last_element)){
-            //         global_screen_array = pop_array(global_screen_array)
-            //     }
-            //     else if (isNumber(last_element)){
-            //         global_screen_array = pop_array(global_screen_array)
-            //         global_screen_array.push(pop_number(last_element))
-            //     }
-            //     console.log(`Global screen array is ${global_screen_array}`)
-            // }
-            // else{
-            //     global_screen_array = pop_array(global_screen_array)
-            //     // calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent)
-            // }
-
     }
 
     console.log(`Final global_screen_array after delete:`)
