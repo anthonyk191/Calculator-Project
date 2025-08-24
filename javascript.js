@@ -7,43 +7,54 @@ calculator_screen_font_bot.textContent = ""
 
 let number_buttons = document.querySelectorAll(".number_button")
 let number_buttons_array = []
+let global_screen_array = [] //Filled with global intermediate numbers and symbols
+let global_intermediate_number = ''//A floating point number
 
 //Helper function to update text on calculator_screen_font_top
 function update_font_top(value) {
+    if (value == "=" && global_intermediate_number != ''){
+        global_screen_array.push(global_intermediate_number)
+    }
+    else if (isSymbol(value)){
+        if (global_intermediate_number != ''){
+            global_screen_array.push(global_intermediate_number)
+            global_intermediate_number = ''
+        }
+        global_screen_array.push(value)
+    }
+    else{
+        //Updating screen_text and compute_array
+        global_intermediate_number += value
+    }
     
     calculator_screen_font_top.textContent += value
-    // checking for zeroes
 
-    //Check Previous Value
-    let previous_value = calculator_screen_font_top.textContent[calculator_screen_font_top.textContent.length - 2]
-    let current_value = calculator_screen_font_top.textContent[calculator_screen_font_top.textContent.length - 1]
-    let previous_previous_value = calculator_screen_font_top.textContent[calculator_screen_font_top.textContent.length - 3]
+    //initializing variables
+    let calculator_screen_length = calculator_screen_font_top.textContent.length
+    let previous_value = calculator_screen_font_top.textContent[calculator_screen_length - 2]
+    let current_value = calculator_screen_font_top.textContent[calculator_screen_length - 1]
+    let previous_previous_value = calculator_screen_font_top.textContent[calculator_screen_length - 3]
     
+    //Checks making sure the next number 
     if(typeof previous_previous_value == 'undefined' || isSymbol(previous_previous_value)){
-        // console.log("Previous Previous Exists")
         if (previous_value == '0'){
-            // console.log("Previous Value is 0")
-            
+            //Check if Current is a Decimal
             if (current_value == '.'){
-                console.log("Current Value is a decimal")
     
             }
             else{
                 if (calculator_screen_font_top.textContent.length >= 3) {
-                    calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent, calculator_screen_font_top.textContent.length - 2)
-                    console.log("popped")
+                    calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent, calculator_screen_length - 2)
+                    global_screen_array = pop_array(global_screen_array)
                 }
                 else{
                     calculator_screen_font_top.textContent = shift_string(calculator_screen_font_top.textContent)
-                    console.log("Error stuff")
                 }
             }
         }
     }
 
-    //Check if Previous Previous Value exists
 
-    //Check if Current is a Decimal
 }
 //Function to create a button for the numbers
 function create_button(button) {
@@ -57,7 +68,7 @@ function create_button(button) {
 function produceErrorMessage(message){
     console.log(message)
     clearHelper()
-    calculator_screen_font_top.textContent = "ERROR"
+    calculator_screen_font_top.textContent = 'ERROR'
 }
 
 //Allows every number button to be interractable with a click
@@ -82,7 +93,7 @@ function addHelper(value1, value2){
         return(output.toString())
     }
     else {
-        return "skip"
+        produceErrorMessage()
     }
 }
 //Subtraction Helper
@@ -92,7 +103,7 @@ function subtractHelper(value1, value2){
         return(output.toString())
     }
     else {
-        return "skip"
+        produceErrorMessage()
     }
 }
 //Multiply Helper
@@ -127,7 +138,6 @@ function spliceArray(input_array, start_splice, end_splice, number_between_splic
             output_array.push(number_between_splice)
         }
     }
-    console.log(output_array)
     return(output_array)
 }
 
@@ -151,7 +161,7 @@ function pop_string(string, index = string.length -1){
             output_string += string[i]
         }
     }
-    console.log(`Value of index is ${index}`)
+    // console.log(`Value of index is ${index}`)
     return(output_string)
 }
 //Compress Array into a single number
@@ -183,10 +193,21 @@ function isDecimal(input) {
     }
 }
 
+function hasDecimal(input){
+    split_input = (""+input).split("")
+    for (let i = 0; i < split_input.length; i++){
+        if (isDecimal(split_input[i])){
+            return(true)
+        }
+    }
+
+    return(false)
+}
+
 //Checks if element is a mathematical symbol
 function isSymbol(input) {
-    SYMBOL_LIST = ["+", "-", "*", "/"]
-    for (let i = 0; i< SYMBOL_LIST.length-1; i++){
+    SYMBOL_LIST = ["+", "-", "x", "/", "DEL"] //Consider adding "EXP", "SQRT"... possible expansion for SIN COS TAN | CSC SEC COT 
+    for (let i = 0; i< SYMBOL_LIST.length; i++){
         if (input == SYMBOL_LIST[i]){
             return(true)
         }
@@ -195,21 +216,41 @@ function isSymbol(input) {
 }
 
 //Deletes the last element in an array
-function popFunction(array){
+function pop_array(array){
     new_array = []
     if (array.length > 0) {
         for (let i = 0; i < array.length - 1; i++){
             new_array.push(array[i])
         }
     }
-    return compressArray(new_array)
+    
+    return(new_array)
 }
 
 //Check if calculator screen says "ERROR"
 function checkForErrorMessage(){
-    if (calculator_screen_font_top.textContent == 'ERROR'){
-        console.log("ERROR Found")
+    if ((calculator_screen_font_top.textContent == 'ERROR') || (calculator_screen_font_top.textContent == 'NaN')){
+        return(true)
     }
+    else{
+        return(false)
+    }
+}
+
+//Check for repeated symbol errors
+function checkForSymbolIssue(){
+    loop_length = global_screen_array.length
+    for (let i = 0; i < loop_length-1; i++){
+        char_current = global_screen_array[i]
+        char_ahead = global_screen_array[i+1]
+        if(isSymbol(char_current) && isSymbol(char_ahead)){
+            console.log("Double symbol found")
+            produceErrorMessage()
+            break
+        }
+    }
+
+    // produceErrorMessage()
 }
 
 //Check if there are any stray parentheses without a pair.
@@ -246,8 +287,7 @@ function checkForRepeatingDecimal() {
         }
         else if (isDecimal(char)){
             if (used_decimal_bool){
-                console.log("Error Message in compute")
-                produceErrorMessage()
+                produceErrorMessage("Repeating decimal error")
                 return
             }
             used_decimal_bool = true
@@ -258,7 +298,7 @@ function checkForRepeatingDecimal() {
     }
 }
 
-//creates an array of only numbers and symbols
+//Creates an array of only floating numbers and symbols.
 function identifyNumbers(input){
     if (typeof input === 'string'){
         let string = input
@@ -278,7 +318,8 @@ function identifyNumbers(input){
         return(output_array)
     } 
     else if(Array.isArray(input)){
-        // Case only works if the array is processed by 
+        // Case only works if the array is processed
+
     }
 
 }
@@ -316,76 +357,143 @@ function computeMultiplicationDivision(compute_array){
 
 //compute addition and distraction
 function computeAdditionSubtraction(compute_array){
+    // console.log(`Compute arrate in add sub compute is ${compute_array}`)
+    // console.log(compute_array)
+    let final_total
     for (let i=0; i < compute_array.length; i++){
         char_current = compute_array[i]
         char_previous = compute_array[i-1]
         char_ahead = compute_array[i+1]
         if (char_current == "+") {
-            intermediate_value = addHelper(char_previous, char_ahead)
-            if (intermediate_value == "skip"){
-                produceErrorMessage()
-                break
-            }
-            else {
-                compute_array[i+1] = intermediate_value
-            }
+            compute_array[i+1] = addHelper(char_previous, char_ahead)
         }
-        else if (char_current == "-") {
-            intermediate_value = subtractHelper(char_previous, char_ahead)
-            if (intermediate_value == "skip"){
-                produceErrorMessage()
-                break
-            }
-            else {
-                compute_array[i+1] = intermediate_value
-            }
-        }
-        else if (char_current == "="){
-            clearHelper()
-            calculator_screen_font_top.textContent = compute_array[i-1] //This doesnt do anything FIX/ DELETE LATER
+        else if (char_current == "-") { //consider changing this to a else
+            compute_array[i+1] = subtractHelper(char_previous, char_ahead)
         }
     }
-    return(compute_array)
+    final_total = compute_array[compute_array.length - 1]
+    return(final_total)
 }
 //Clear (CE) Button
 function clearHelper(){
     calculator_screen_font_top.textContent = ""
+    global_intermediate_number = ""
+    global_screen_array = []
+
 }
 let clear_button = alternate_buttons[4]
 clear_button.addEventListener("click", () => {
     clearHelper()
 })
 
+//Removes the right element within a decimal number
+function pop_decimal_number(number){
+    output_number = (""+number).split("")
+    output_number_length = output_number.length
+    if (output_number[output_number_length-2]== '.'){
+        output_number = pop_string(pop_string(output_number))
+    }
+    else{
+        output_number = pop_string(output_number)
+    }
+
+    return(output_number)
+}
+
+function pop_number(number){
+    output_number = (""+number).split("")
+    return(pop_string(output_number))
+}
+
 //Delete (DEL) Button
 function deleteButton() {
     if (calculator_screen_font_top.textContent != "") {
-        console.log("Deleted")
-        //Note here, since DEL is written, I will pop 4 times instead of 1
-        for (let i=0; i<4; i++){
-            calculator_screen_font_top.textContent = popFunction(calculator_screen_font_top.textContent)
+        console.log(`Value before deleting global_screen_array: ${global_screen_array}`)
+        
+        //Deletes the numbers on the top of screen
+        
+        for (let i=0; i<4; i++){ //Note here, since DEL is written, I will pop 4 times instead of 1
+            calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent)
         }
+        
+        //Deleting within global_screen_array
+        global_screen_array = pop_array(global_screen_array)
+        
+        last_index = global_screen_array.length-1
+        last_element = global_screen_array[last_index]
+        
+        //FIX: This is pretty bad code. Consider optimizing
+        if (hasDecimal(last_element) && isNumber(last_element)){
+            global_screen_array[last_index] = pop_decimal_number(last_element)
+        }
+        else if (isNumber(last_element)) {
+            global_screen_array[last_index] = pop_number(last_element)
+        }
+        else if (isSymbol(last_element)){
+            global_screen_array = pop_array(global_screen_array)
+        }  
+            //-----------------------------------------
+            // calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent)
+                
+            //     else if (isSymbol(last_element)){
+            //         global_screen_array = pop_array(global_screen_array)
+            //     }
+            //     else if (isNumber(last_element)){
+            //         global_screen_array = pop_array(global_screen_array)
+            //         global_screen_array.push(pop_number(last_element))
+            //     }
+            //     console.log(`Global screen array is ${global_screen_array}`)
+            // }
+            // else{
+            //     global_screen_array = pop_array(global_screen_array)
+            //     // calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent)
+            // }
+
     }
+
+    console.log(`Final global_screen_array after delete:`)
+    console.log(global_screen_array)
 }
+
+//Test Delete this later
+// test_number = 55.5
+// console.log(pop_number(test_number))
+// console.log(pop_decimal_number(test_number))
+
 let delete_button = alternate_buttons[6]
 delete_button.addEventListener("click", () => {
     deleteButton()
 })
 //Compute Function
-function masterCompute(screen_value = 'Missing Input') {
-    let compute_array = []
-
-    compute_array = identifyNumbers(screen_value)
+function masterCompute(compute_array = 'Missing Input') {
+    // compute_array = identifyNumbers(screen_value) //Should be removed after implementing global_screen_array correctly
     compute_array = computeMultiplicationDivision(compute_array)
-    compute_array = computeAdditionSubtraction(compute_array)
-    console.log(compute_array)
+    final_total = computeAdditionSubtraction(compute_array)
+    
+    console.log(`Compute Array is ${compute_array}`)
+    global_screen_array = final_total
+    calculator_screen_font_top.textContent = final_total
+    global_screen_array = []
+    global_intermediate_number = final_total
+    
 }
 
 //Compute math of calculator screen. Instantiate equal button to compute
 let equal_button = alternate_buttons[11]
 equal_button.addEventListener("click", () => {
-    checkForErrorMessage()
+    checkForSymbolIssue()
     checkForRepeatingDecimal()
     checkForParenthesesIssue()
-    masterCompute(calculator_screen_font_top.textContent)
+    // update_font_top()
+    if (!checkForErrorMessage()){
+        console.log(`Global Array is ${global_screen_array}`)
+        console.log(global_screen_array)
+        masterCompute(global_screen_array) //Input here should be global_screen_array
+    }
+    else{
+        produceErrorMessage()
+    }
 })
 
+//check for error message
+//breaks after first set of calculations (will not calculate with existing number on the screen)
