@@ -53,7 +53,7 @@ function update_font_top(value) {
             else{
                 if (calculator_screen_font_top.textContent.length >= 3) {
                     calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent, calculator_screen_length - 2)
-                    global_screen_array = pop_array(global_screen_array)
+                    // global_screen_array = pop_array(global_screen_array) //Maybe dont need?
                 }
                 else{
                     calculator_screen_font_top.textContent = shift_string(calculator_screen_font_top.textContent)
@@ -101,7 +101,7 @@ function addHelper(value1, value2){
         return(output.toString())
     }
     else {
-        produceErrorMessage()
+        produceErrorMessage("Not adding numbers")
     }
 }
 //Subtraction Helper
@@ -111,7 +111,7 @@ function subtractHelper(value1, value2){
         return(output.toString())
     }
     else {
-        produceErrorMessage()
+        produceErrorMessage("Not subtracting numbers")
     }
 }
 //Multiply Helper
@@ -187,20 +187,18 @@ function compressArray(input_array){
 
 //Checks if value is a number
 function isNumber(input) { //Fix This! Check if this works for mathematical annotations (also doesnt work for zero)
+    if (typeof input === 'number'){
+        console.log("IsNumber Triggered typeof")
+        return(true)
+    }
     if (input >= 0 || input < 0){
         console.log(`isNumber is true for ${input}`)
         return(true)
     }
     else{
+        console.log("IsNumber Triggered false")
         return(false)
     }
-
-    // if (typeof input === 'number'){
-    //     return(true)
-    // }
-    // else{
-    //     return(false)
-    // }
 }
 
 //Checks if element is a decimal symbol
@@ -226,7 +224,7 @@ function hasDecimal(input){
 
 //Checks if element is a mathematical symbol
 function isSymbol(input) {
-    SYMBOL_LIST = ["+", "-", "x", "/", "DEL"] //Consider adding "EXP", "SQRT"... possible expansion for SIN COS TAN | CSC SEC COT 
+    SYMBOL_LIST = ["+", "-", "x", "/", "DEL", "(", ")"] //Consider adding "EXP", "SQRT"... possible expansion for SIN COS TAN | CSC SEC COT 
     for (let i = 0; i< SYMBOL_LIST.length; i++){
         if (input == SYMBOL_LIST[i]){
             return(true)
@@ -235,6 +233,25 @@ function isSymbol(input) {
     return(false)
 }
 
+//Checks if element should be excluded from the update_font_top function
+// function isExcludedSymbol(input){
+//     EXCLUDED_LIST = ["DEL", "(", ")"]
+//     for (let i = 0; i< EXCLUDED_LIST.length; i++){
+//         if (input == EXCLUDED_LIST[i]){
+//             return(true)
+//         }
+//     }
+//     return(false)
+// }
+
+function isParentheses(input){
+    if (input == "(" || input == ")"){
+        return(true)
+    }
+    else{
+        return(false)
+    }
+}
 //Deletes the last element in an array
 function pop_array(array){
     new_array = []
@@ -260,19 +277,17 @@ function checkForErrorMessage(){
 //Check for repeated symbol errors
 function checkForSymbolIssue(){
     loop_length = global_screen_array.length
-    if (isSymbol(global_screen_array[0])){
+    if (isSymbol(global_screen_array[0]) && !isParentheses(global_screen_array[0])){
         produceErrorMessage("First element is a symbol")
     }
     for (let i = 0; i < loop_length-1; i++){
         char_current = global_screen_array[i]
         char_ahead = global_screen_array[i+1]
-        if(isSymbol(char_current) && isSymbol(char_ahead)){
+        if(isSymbol(char_current) && isSymbol(char_ahead) && !isParentheses(char_current)){
             produceErrorMessage("Double symbol found")
             break
         }
     }
-
-    // produceErrorMessage()
 }
 
 //Check if there are any stray parentheses without a pair.
@@ -294,7 +309,7 @@ function checkForParenthesesIssue(){
         return
     }
     else{
-        produceErrorMessage()
+        produceErrorMessage("Unequal number of opened and closed parentheses")
         return
     }
 }
@@ -455,7 +470,10 @@ function deleteButton() {
             }
             else if (isSymbol(last_element)){
                 global_screen_array = pop_array(global_screen_array)
-            }  
+            } 
+            else{
+                produceErrorMessage("Function deleteButton() found a weird case, unknown element deleted")
+            }
         }
         
         //Deleting within global_screen_array (This assumes DEL is added to the array)
@@ -467,10 +485,16 @@ function deleteButton() {
     console.log(global_screen_array)
 }
 
-//Test Delete this later
-// test_number = 55.5
-// console.log(pop_number(test_number))
-// console.log(pop_decimal_number(test_number))
+// let left_parentheses = alternate_buttons[2]
+// left_parentheses.addEventListener("click", () => {
+//     global_screen_array.push("(")
+// })
+
+// let right_parentheses = alternate_buttons[3]
+// right_parentheses.addEventListener("click", () => {
+//     global_screen_array.push(")")
+// })
+
 
 let delete_button = alternate_buttons[6]
 delete_button.addEventListener("click", () => {
@@ -493,9 +517,9 @@ function masterCompute(compute_array = 'Missing Input') {
 //Compute math of calculator screen. Instantiate equal button to compute
 let equal_button = alternate_buttons[11]
 equal_button.addEventListener("click", () => {
+    checkForParenthesesIssue()
     checkForSymbolIssue()
     checkForRepeatingDecimal()
-    checkForParenthesesIssue()
     // update_font_top()
     if (!checkForErrorMessage()){
         console.log(`Global Array is ${global_screen_array}`)
