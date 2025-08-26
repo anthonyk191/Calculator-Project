@@ -125,17 +125,23 @@ function multiplyHelper(value1, value2){
         return(output.toString())
     }
     else {
-        return "skip"
+        produceErrorMessage("Missing input pair for multiplyHelper")
     }
 }
 //Division Helper
 function divideHelper(value1, value2){
     if (isNumber(value1) && isNumber(value2)) {
+        if (value2 == 0){
+            produceErrorMessage("Division by Zero")
+        }
+        if (value1 == 0){
+            return(0)
+        }
         output = parseFloat(value1) / parseFloat(value2)
         return(output.toString())
     }
     else {
-        return "skip"
+        produceErrorMessage("Missing input pair for divideHelper")
     }
 }
 
@@ -295,13 +301,24 @@ function checkForParenthesesIssue(){
     screen_string = calculator_screen_font_top.textContent
     left_parentheses_count = 0
     right_parentheses_count = 0
+    
+    let char
+    let previousChar
     for (let i = 0; i< screen_string.length; i++){
         char = screen_string[i]
+        if (i > 0){
+            previousChar = screen_string[i-1]
+        }  
         if (char == "("){
             left_parentheses_count++
         }
         if (char == ")"){
             right_parentheses_count++
+        }
+        
+        if (previousChar == "(" && char == ")"){
+            produceErrorMessage("Parentheses not being used")   
+            return 
         }
     }
 
@@ -312,6 +329,8 @@ function checkForParenthesesIssue(){
         produceErrorMessage("Unequal number of opened and closed parentheses")
         return
     }
+
+    
 }
 //Checks for multiple decimals within a single number
 function checkForRepeatingDecimal() {
@@ -529,7 +548,9 @@ equal_button.addEventListener("click", () => {
     else{
         produceErrorMessage()
     }
+    // purgeUndefined()
 })
 
 //check for error message
 //breaks after first set of calculations (will not calculate with existing number on the screen)
+//remove anything undefined within
