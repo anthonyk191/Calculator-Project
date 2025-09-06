@@ -106,7 +106,7 @@ function addHelper(value1, value2){
 }
 //Subtraction Helper
 function subtractHelper(value1, value2){
-        if (isNumber(value1) && isNumber(value2)) {
+    if (isNumber(value1) && isNumber(value2)) {
         output = parseFloat(value1) - parseFloat(value2)
         return(output.toString())
     }
@@ -435,7 +435,13 @@ function computeAdditionSubtraction(compute_array){
             compute_array[i+1] = addHelper(char_previous, char_ahead)
         }
         else if (char_current == "-") { //consider changing this to a else
-            compute_array[i+1] = subtractHelper(char_previous, char_ahead)
+            if (isParentheses(char_previous) || char_previous == undefined){
+                console.log("Parentheses before negative")
+                compute_array[i+1] = subtractHelper(0, char_ahead)
+            }
+            else{
+                compute_array[i+1] = subtractHelper(char_previous, char_ahead)
+            }
         }
     }
     final_total = compute_array[compute_array.length - 1]
@@ -681,6 +687,7 @@ equal_button.addEventListener("click", () => {
 // testArray = ["7","(","7",")"]
 // testArray = ["(","7",")","7"]
 // testArray = ["4", "+", "(", "5", ")"]
+// testArray = ["(","-","5",")"]
 
 // simpleCompute(testArray)
 // masterCompute(testArray)
