@@ -44,7 +44,7 @@ function update_font_top(value) {
     let previous_previous_value = calculator_screen_font_top.textContent[calculator_screen_length - 3]
     
     //Checks making sure the numbers with a decimal is valid
-    if(typeof previous_previous_value == 'undefined' || isSymbol(previous_previous_value)){
+    if(typeof previous_previous_value == undefined || isSymbol(previous_previous_value)){
         if (previous_value == '0'){
             //Check if Current is a Decimal
             if (current_value == '.'){
@@ -149,11 +149,19 @@ function divideHelper(value1, value2){
 function spliceArray(input_array, start_splice, end_splice, number_between_splice){
     output_array = []
     for (let i=0; i< input_array.length; i++){
+        element = input_array[i]
         if ((i < start_splice) || (i > end_splice)) {
-            output_array.push(input_array[i])
+            output_array.push(element)
         }
-        else if (i == start_splice){
-            output_array.push(number_between_splice)
+        else if (i == start_splice){ //Accepts both arrays and numbers
+            if (isNumber(number_between_splice)){
+                output_array.push(number_between_splice)
+            }
+            else if (isArray(number_between_splice)){
+                for (let j=0; j< number_between_splice.length; j++){
+                    output_array.push(number_between_splice[i])
+                }
+            }
         }
     }
     return(output_array)
@@ -197,12 +205,12 @@ function isNumber(input) { //Fix This! Check if this works for mathematical anno
         console.log("IsNumber Triggered typeof")
         return(true)
     }
-    if (input >= 0 || input < 0){
-        console.log(`isNumber is true for ${input}`)
+    else if (input >= 0 || input < 0){
+        console.log(`isNumber, ${input} is a number`)
         return(true)
     }
     else{
-        console.log("IsNumber Triggered false")
+        console.log(`isNumber, ${input} is NOT a number`)
         return(false)
     }
 }
@@ -258,6 +266,15 @@ function isParentheses(input){
         return(false)
     }
 }
+
+function isNegative(input){
+    if (input < 0){
+        return(true)
+    }
+    else{
+        return(false)
+    }
+}
 //Deletes the last element in an array
 function pop_array(array){
     new_array = []
@@ -283,13 +300,13 @@ function checkForErrorMessage(){
 //Check for repeated symbol errors
 function checkForSymbolIssue(){
     loop_length = global_screen_array.length
-    if (isSymbol(global_screen_array[0]) && !isParentheses(global_screen_array[0])){
+    if (isSymbol(global_screen_array[0]) && !isParentheses(global_screen_array[0]) && !isNegative(global_screen_array[0])){
         produceErrorMessage("First element is a symbol")
     }
     for (let i = 0; i < loop_length-1; i++){
         char_current = global_screen_array[i]
         char_ahead = global_screen_array[i+1]
-        if(isSymbol(char_current) && isSymbol(char_ahead) && !isParentheses(char_current)){
+        if(isSymbol(char_current) && isSymbol(char_ahead) && !isParentheses(char_current) && !isParentheses(char_ahead)){
             produceErrorMessage("Double symbol found")
             break
         }
@@ -318,20 +335,30 @@ function checkForParenthesesIssue(){
         
         if (previousChar == "(" && char == ")"){
             produceErrorMessage("Parentheses not being used")   
-            return 
+            return(undefined) 
         }
     }
 
     if (left_parentheses_count == right_parentheses_count){
-        return
+        return(left_parentheses_count)
     }
     else{
         produceErrorMessage("Unequal number of opened and closed parentheses")
-        return
+        return(undefined)
     }
 
     
 }
+//Adds parentheses at both ends of the array
+function insert_edge_parentheses(array){
+    internal_array = ["("]
+    for (let i=0;i<array.length;i++){
+        internal_array.push(array[i])
+    }
+    internal_array.push(")")
+    return(internal_array)
+}
+
 //Checks for multiple decimals within a single number
 function checkForRepeatingDecimal() {
     let used_decimal_bool = false
@@ -355,29 +382,13 @@ function checkForRepeatingDecimal() {
 }
 
 //Creates an array of only floating numbers and symbols.
-function identifyNumbers(input){
-    if (typeof input === 'string'){
-        let string = input
-        let number_array = []
-        let output_array = []
-        for (let i = 0; i < string.length; i++){
-            char = string[i]
-            if (isNumber(char) || isDecimal(char)) {
-                number_array.push(char)
-            }
-            else{
-                output_array.push(compressArray(number_array))
-                output_array.push(char)
-                number_array = []
-            }
-        }
-        return(output_array)
-    } 
-    else if(Array.isArray(input)){
-        // Case only works if the array is processed
-
+function isArray(input){
+    if(Array.isArray(input)){
+        return(true)
     }
-
+    else{
+        return(false)
+    }
 }
 
 //computes multiplication and division
@@ -504,33 +515,139 @@ function deleteButton() {
     console.log(global_screen_array)
 }
 
-// let left_parentheses = alternate_buttons[2]
-// left_parentheses.addEventListener("click", () => {
-//     global_screen_array.push("(")
-// })
-
-// let right_parentheses = alternate_buttons[3]
-// right_parentheses.addEventListener("click", () => {
-//     global_screen_array.push(")")
-// })
-
-
 let delete_button = alternate_buttons[6]
 delete_button.addEventListener("click", () => {
     deleteButton()
 })
+
+function findParenthesesPairings(input_array){
+    console.log(input_array)
+    
+    //Checks if comparisonNumber's number is found in any of the numbers stored in stack
+    function isInStack(comparisonNumber, stack){
+        for (let i=0;i<stack.length; i++){
+            if (comparisonNumber == stack[i]){
+                return(true)
+            }
+        }
+        return(false)
+    }
+    //counting pairs
+    let left_parentheses_count = 0
+    for (let i=0; i< input_array.length; i++){
+        char = input_array[i]
+        if (char == "("){
+            left_parentheses_count++
+        }
+    }
+    console.log(`Left Parentheses Count = ${left_parentheses_count}`)
+    
+    let current_position1 = 0
+    let current_position2 = 0
+    final_stack = []
+    // for (let j=0;j<left_parentheses_count;j++){
+        for (let i=0;i< input_array.length; i++){
+            let char = input_array[i]
+            if (isInStack(i, final_stack)){
+                //Do nothing
+            }
+            else{
+                if(char == "("){
+                    current_position1 = i
+                }
+                
+                if(char == ")"){
+                    current_position2 = i
+                    break
+                }
+
+            }
+        }
+        final_stack.push(current_position1)
+        final_stack.push(current_position2)
+        console.log(final_stack)
+    // }   
+    
+    console.log(`Stack looks like ${final_stack}`)
+    return(final_stack)
+    
+}
+
+//Adds a 'x" symbol when left and right parentheses are next to each other
+function add_multiply_between_parentheses_in_array(array){
+    console.log(`New array entering add multiply is ${array}`)
+    //Edge case if array is 1 element long
+    if (array.length == 1){
+        return(array)
+    }
+
+    //Adding multiplcation symbol respectively
+    let new_array = []
+    for (let i=0;i<array.length;i++){
+        if (i==0){
+            char_previous = undefined
+        }
+        else{
+            char_previous = array[i-1]
+        }
+        
+        let char_current = array[i]
+
+        if ((char_previous == ")") && (char_current == "(")){
+            new_array.push("x")
+            new_array.push(char_current)
+        }
+        else if(isNumber(char_previous) && (char_current == "(")){
+            new_array.push("x")
+            new_array.push(char_current)
+        }
+        else if((char_previous == ")") && (isNumber(char_current))){
+            new_array.push("x")
+            new_array.push(char_current)
+        }
+        else if(isNumber(char_previous) && (isNumber(char_current))){
+            new_array.push("x")
+            new_array.push(char_current)
+        }
+        else{
+            new_array.push(char_current)
+        }
+    }
+    return(new_array)
+}
+
+// console.log(`Testing fix array where`)
 //Compute Function
-function masterCompute(compute_array = 'Missing Input') {
-    // compute_array = identifyNumbers(screen_value) //Should be removed after implementing global_screen_array correctly
+function simpleCompute(compute_array){
+    console.log(`simpleCompute array entering is ${compute_array}`)
     compute_array = computeMultiplicationDivision(compute_array)
     final_total = computeAdditionSubtraction(compute_array)
-    
-    console.log(`Compute Array is ${compute_array}`)
-    global_screen_array = final_total
-    calculator_screen_font_top.textContent = final_total
-    global_screen_array = []
-    global_intermediate_number = final_total
-    
+    console.log(`SimpleCompute calculated ${final_total}`)
+    return(final_total)
+}
+function masterCompute(compute_array = 'Missing Input') {
+    let temp_compute_array = compute_array
+    let loop_length = 0
+    for (let i=0;i<compute_array.length;i++){
+        if (compute_array[i] == "("){
+            loop_length++
+        }
+    }
+    for (let i=0;i<loop_length;i++){
+        let parentheses_pairing = findParenthesesPairings(temp_compute_array)
+        console.log(`Parentheses_pairing is ${parentheses_pairing}`)
+        let startSplice = parentheses_pairing[0]
+        let endSplice = parentheses_pairing[1]
+        temp_compute_array = spliceArray(temp_compute_array, startSplice, endSplice, simpleCompute(temp_compute_array.slice(startSplice + 1, endSplice)))
+        console.log(`After slicing we got ${temp_compute_array}`)
+        temp_compute_array = add_multiply_between_parentheses_in_array(temp_compute_array)
+        console.log(temp_compute_array)
+    }
+
+    let final_output = simpleCompute(temp_compute_array)
+    // let final_output 
+    console.log(`Final output we find is ${final_output}`)
+    return(final_output) //Last calculation
 }
 
 //Compute math of calculator screen. Instantiate equal button to compute
@@ -543,7 +660,11 @@ equal_button.addEventListener("click", () => {
     if (!checkForErrorMessage()){
         console.log(`Global Array is ${global_screen_array}`)
         console.log(global_screen_array)
-        masterCompute(global_screen_array) //Input here should be global_screen_array
+        final_total = masterCompute(insert_edge_parentheses(global_screen_array)) //Input here should be global_screen_array
+
+        calculator_screen_font_top.textContent = final_total
+        global_screen_array = []
+        global_intermediate_number = final_total
     }
     else{
         produceErrorMessage()
@@ -551,6 +672,22 @@ equal_button.addEventListener("click", () => {
     // purgeUndefined()
 })
 
+//--All Test Cases
+// testArray = ["9", "+", "9"]
+// testArray = ["(","9", "+", "9", ")"]
+// testArray = ["(", "(","9", "+", "9", ")", ")"]
+// testArray = ["(","(","9","+","5",")","+","7",")","(","7",")"]
+// testArray = ["(","7",")","(","7",")"]
+// testArray = ["7","(","7",")"]
+// testArray = ["(","7",")","7"]
+// testArray = ["4", "+", "(", "5", ")"]
+
+// simpleCompute(testArray)
+// masterCompute(testArray)
+
+// testArray = [9,"+", 9]
+// console.log(testArray[5] == undefined)
+// console.log(`Computing the test array of "(9+9)" we get ${masterCompute(testArray)}!`)
 //check for error message
 //breaks after first set of calculations (will not calculate with existing number on the screen)
 //remove anything undefined within
