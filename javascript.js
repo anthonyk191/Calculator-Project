@@ -3,12 +3,11 @@ let calculator_screen_font_top = document.querySelector(".calculator_screen_font
 let calculator_screen_font_bot = document.querySelector(".calculator_screen_font_bot")
 
 calculator_screen_font_top.textContent = ""
-calculator_screen_font_bot.textContent = ""
 
 let number_buttons = document.querySelectorAll(".number_button")
 let number_buttons_array = []
 let global_screen_array = [] //Filled with global intermediate numbers and symbols
-let global_intermediate_number = ''//A floating point number
+let global_intermediate_number = ''
 
 //Helper function to update text on calculator_screen_font_top
 function update_font_top(value) {
@@ -119,10 +118,13 @@ function multiplyHelper(value1, value2){
     if (isNumber(value1) && isNumber(value2)) {
         console.log("Returning Zero")
         if ((value1 == 0) || (value2 == 0)){ //Check for zero errors
-            return(0)
+            output = 0
+            return(output.toString())
         }
-        output = parseFloat(value1) * parseFloat(value2)
-        return(output.toString())
+        else{
+            output = parseFloat(value1) * parseFloat(value2)
+            return(output.toString())
+        }
     }
     else {
         produceErrorMessage("Missing input pair for multiplyHelper")
@@ -247,17 +249,7 @@ function isSymbol(input) {
     return(false)
 }
 
-//Checks if element should be excluded from the update_font_top function
-// function isExcludedSymbol(input){
-//     EXCLUDED_LIST = ["DEL", "(", ")"]
-//     for (let i = 0; i< EXCLUDED_LIST.length; i++){
-//         if (input == EXCLUDED_LIST[i]){
-//             return(true)
-//         }
-//     }
-//     return(false)
-// }
-
+//Checks if element is a parentheses
 function isParentheses(input){
     if (input == "(" || input == ")"){
         return(true)
@@ -267,6 +259,7 @@ function isParentheses(input){
     }
 }
 
+//Checks if element is a negative number
 function isNegative(input){
     if (input < 0){
         return(true)
@@ -300,15 +293,17 @@ function checkForErrorMessage(){
 //Check for repeated symbol errors
 function checkForSymbolIssue(){
     loop_length = global_screen_array.length
-    if (isSymbol(global_screen_array[0]) && !isParentheses(global_screen_array[0]) && !isNegative(global_screen_array[0])){
+    if ((isSymbol(global_screen_array[0]) && global_screen_array[0] != "-") && !isParentheses(global_screen_array[0]) && !isNegative(global_screen_array[0])){
         produceErrorMessage("First element is a symbol")
     }
     for (let i = 0; i < loop_length-1; i++){
         char_current = global_screen_array[i]
         char_ahead = global_screen_array[i+1]
-        if(isSymbol(char_current) && isSymbol(char_ahead) && !isParentheses(char_current) && !isParentheses(char_ahead)){
+        if(isSymbol(char_current) && isSymbol(char_ahead) && !isParentheses(char_current) && !isParentheses(char_ahead) && char_ahead != "-"){
+            //update here for sub case with negative numbers
             produceErrorMessage("Double symbol found")
             break
+    
         }
     }
 }
@@ -424,8 +419,6 @@ function computeMultiplicationDivision(compute_array){
 
 //compute addition and distraction
 function computeAdditionSubtraction(compute_array){
-    // console.log(`Compute arrate in add sub compute is ${compute_array}`)
-    // console.log(compute_array)
     let final_total
     for (let i=0; i < compute_array.length; i++){
         char_current = compute_array[i]
@@ -454,10 +447,6 @@ function clearHelper(){
     global_screen_array = []
 
 }
-let clear_button = alternate_buttons[4]
-clear_button.addEventListener("click", () => {
-    clearHelper()
-})
 
 //Removes the right element within a decimal number
 function pop_decimal_number(number){
@@ -486,9 +475,6 @@ function deleteButton() {
         //Deletes the numbers on the top of screen
         calculator_screen_font_top.textContent = pop_string(calculator_screen_font_top.textContent)
         
-        // for (let i=0; i<4; i++){ //Note here, since DEL is written, I will pop 4 times instead of 1
-        // }
-        
         //Deletes within global_intermediate_number
         if (global_intermediate_number != ''){
             global_intermediate_number = pop_number(global_intermediate_number)
@@ -510,21 +496,12 @@ function deleteButton() {
             else{
                 produceErrorMessage("Function deleteButton() found a weird case, unknown element deleted")
             }
-        }
-        
-        //Deleting within global_screen_array (This assumes DEL is added to the array)
-        // global_screen_array = pop_array(global_screen_array)
-        
+        }  
     }
 
     console.log(`Final global_screen_array after delete:`)
     console.log(global_screen_array)
 }
-
-let delete_button = alternate_buttons[6]
-delete_button.addEventListener("click", () => {
-    deleteButton()
-})
 
 function findParenthesesPairings(input_array){
     console.log(input_array)
@@ -551,28 +528,26 @@ function findParenthesesPairings(input_array){
     let current_position1 = 0
     let current_position2 = 0
     final_stack = []
-    // for (let j=0;j<left_parentheses_count;j++){
-        for (let i=0;i< input_array.length; i++){
-            let char = input_array[i]
-            if (isInStack(i, final_stack)){
-                //Do nothing
-            }
-            else{
-                if(char == "("){
-                    current_position1 = i
-                }
-                
-                if(char == ")"){
-                    current_position2 = i
-                    break
-                }
-
-            }
+    for (let i=0;i< input_array.length; i++){
+        let char = input_array[i]
+        if (isInStack(i, final_stack)){
+            //Do nothing
         }
-        final_stack.push(current_position1)
-        final_stack.push(current_position2)
-        console.log(final_stack)
-    // }   
+        else{
+            if(char == "("){
+                current_position1 = i
+            }
+            
+            if(char == ")"){
+                current_position2 = i
+                break
+            }
+
+        }
+    }
+    final_stack.push(current_position1)
+    final_stack.push(current_position2)
+    console.log(final_stack)
     
     console.log(`Stack looks like ${final_stack}`)
     return(final_stack)
@@ -622,7 +597,41 @@ function add_multiply_between_parentheses_in_array(array){
     return(new_array)
 }
 
-// console.log(`Testing fix array where`)
+//Resolve negative numbers
+function resolveNegativeNumbers(compute_array){
+    console.log(`compute_array input is ${compute_array}`)
+    let output_array = [compute_array[0]]
+
+    if(compute_array.length < 3){
+        console.log("resolveNegativeNumbers will not run, compute_array is less than 3 elements")
+        return
+    }
+
+    for (let i=1; i<compute_array.length -1; i++){
+        index_previous = i - 1
+        index_current = i
+        index_ahead = i+1
+        char_previous = compute_array[index_previous]
+        char_current = compute_array[index_current]
+        char_ahead = compute_array[index_ahead]
+        if ((isSymbol(char_previous) || undefined) && char_current == "-" && isNumber(char_ahead) && char_previous != ")"){
+            let resolvedNegative = subtractHelper(0, char_ahead)
+            output_array.push(resolvedNegative)
+            i++
+            // console.log("Pushed")
+            // console.log(`output_array: ${output_array}`)
+        }
+        else{
+            output_array.push(char_current)
+            // console.log("Pushed else")
+            // console.log(`output_array: ${output_array}`)
+        }
+    }
+    last_index = compute_array.length
+    output_array.push(compute_array[compute_array.length-1])
+    return(output_array)
+}
+
 //Compute Function
 function simpleCompute(compute_array){
     console.log(`simpleCompute array entering is ${compute_array}`)
@@ -632,7 +641,7 @@ function simpleCompute(compute_array){
     return(final_total)
 }
 function masterCompute(compute_array = 'Missing Input') {
-    let temp_compute_array = compute_array
+    let temp_compute_array = resolveNegativeNumbers(compute_array)
     let loop_length = 0
     for (let i=0;i<compute_array.length;i++){
         if (compute_array[i] == "("){
@@ -649,15 +658,26 @@ function masterCompute(compute_array = 'Missing Input') {
         temp_compute_array = add_multiply_between_parentheses_in_array(temp_compute_array)
         console.log(temp_compute_array)
     }
-
+    
     let final_output = simpleCompute(temp_compute_array)
     // let final_output 
     console.log(`Final output we find is ${final_output}`)
     return(final_output) //Last calculation
 }
 
+//Clear screen and global input arrays
+let clear_button = alternate_buttons[2]
+clear_button.addEventListener("click", () => {
+    clearHelper()
+})
+//Delete right most number from screen and updates or deletes right most global array element
+let delete_button = alternate_buttons[3]
+delete_button.addEventListener("click", () => {
+    deleteButton()
+})
+
 //Compute math of calculator screen. Instantiate equal button to compute
-let equal_button = alternate_buttons[11]
+let equal_button = alternate_buttons[7]
 equal_button.addEventListener("click", () => {
     checkForParenthesesIssue()
     checkForSymbolIssue()
@@ -688,9 +708,12 @@ equal_button.addEventListener("click", () => {
 // testArray = ["(","7",")","7"]
 // testArray = ["4", "+", "(", "5", ")"]
 // testArray = ["(","-","5",")"]
-
+// testArray = ["9","/","-","3"]
+// testArray = ["(","(","9","-","5",")","-","7",")","(","-7",")"]
+// testArray = ["0","x", "-","3"]
+// testArray = ["-5","x", "-","3"]
 // simpleCompute(testArray)
-// masterCompute(testArray)
+// masterCompute(insert_edge_parentheses(testArray))
 
 // testArray = [9,"+", 9]
 // console.log(testArray[5] == undefined)
